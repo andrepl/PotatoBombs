@@ -16,28 +16,22 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.inventory.CraftShapelessRecipe;
-import org.bukkit.craftbukkit.CraftServer;
-import org.bukkit.enchantments.Enchantment;
+
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event.Result;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.Recipe;
-import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 
-import org.bukkit.material.MaterialData;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -63,12 +57,12 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 		if (getConfig().getBoolean("allow-crafting.poisonous-potatoes")) {
 			getServer().addRecipe(poisonousPotatoRecipe);
 		}
-		
-		ShapelessRecipe potatoBombRecipe = new ShapelessRecipe(new ItemStack(Material.POISONOUS_POTATO));
-		potatoBombRecipe.addIngredient(Material.POISONOUS_POTATO);
-		potatoBombRecipe.addIngredient(Material.INK_SACK, 0);
-		getServer().addRecipe(potatoBombRecipe);
-		
+//		
+		ShapelessRecipe potatoBombRecipe; // = new ShapelessRecipe(new ItemStack(Material.POISONOUS_POTATO));
+//		potatoBombRecipe.addIngredient(Material.POISONOUS_POTATO);
+//		potatoBombRecipe.addIngredient(Material.INK_SACK, 0);
+//		getServer().addRecipe(potatoBombRecipe);
+//		
 		dyeMap = new HashMap<Integer, PotionEffectType> (9);
 		dyeMap.put(1,  PotionEffectType.BLINDNESS);
 		dyeMap.put(2,  PotionEffectType.CONFUSION);
@@ -84,7 +78,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 		Collections.sort(keys);
 		for (Integer i: keys) {
 			effects.add(dyeMap.get(i));
-			potatoBombRecipe = new ShapelessRecipe(new ItemStack(Material.POISONOUS_POTATO));
+			potatoBombRecipe = new ShapelessRecipe(new ItemStack(Material.POISONOUS_POTATO, 1, (short)0));
 			potatoBombRecipe.addIngredient(Material.POISONOUS_POTATO);
 			potatoBombRecipe.addIngredient(Material.INK_SACK, i);
 			getServer().addRecipe(potatoBombRecipe);
@@ -127,11 +121,11 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 	}
 	
 	
-	@EventHandler(ignoreCancelled=true)
 	void onCraftItem(CraftItemEvent event) {
 		CraftItemStack stack = (CraftItemStack)event.getInventory().getResult();
 		if (stack.getType().equals(Material.POISONOUS_POTATO)) {
 			if (event.isShiftClick()) {
+				// shift click is super wierd and buggy
 				event.setCancelled(true);
 			}
 		}
@@ -150,11 +144,9 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 		}
 		
 		if (event instanceof CraftItemEvent) {
-		
-			return;
+			onCraftItem((CraftItemEvent)event);
 			
-		}
-		
+		} 
 		
 		getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
 			@Override
@@ -163,8 +155,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 				Recipe r = inv.getRecipe();
 				if (r != null) {
 					if (r instanceof ShapelessRecipe) {
-						getLogger().info("Recipe is shapeless");
-						getLogger().info(((ShapelessRecipe)r).getIngredientList().toString());
+						
 						List<ItemStack> inGrid = new ArrayList<ItemStack>();
 						
 						for (ItemStack s: inv.getMatrix()) {
@@ -172,6 +163,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 								inGrid.add(s);
 							}
 						}
+						
 						if (inGrid.size() != 2) return;
 						
 						ItemStack potato = null;
@@ -197,16 +189,9 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 							int dyeId = dye.getData().getData();
 							PotionEffectType pt = dyeMap.get(dyeId);
 							String permNode = "potatobombs.craft." + pt.getName().toLowerCase().replaceAll("_","");
-							boolean has = hasPermission(player,permNode);
-							if (has) {
-								getLogger().info("Has The Node!");
-							} else {
-								getLogger().info("No Permissions");
-							}
-							getLogger().info("Checking permission Node: " + permNode);
-							if (potatoBombs.containsKey(pt) && has) {
+						
+							if (potatoBombs.containsKey(pt) && hasPermission(player,permNode)) {
 								CraftItemStack ns = potatoBombs.get(pt).clone();
-								inv.setMaxStackSize(64);
 								inv.setResult(ns);
 							}
 						}
@@ -215,21 +200,6 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 				}
 			}
 		}, 0);
-	}
-
-	
-	@EventHandler
-	void onPrepareItemCraftEvent(PrepareItemCraftEvent event) {
-		Recipe r = event.getRecipe();
-		if (r == null) {
-			getLogger().info("onPrepare: Recipe is null");
-		} else {
-			getLogger().info("onPrepare: Recipe is " + r.toString());
-			CraftShapelessRecipe sr = (CraftShapelessRecipe)r;
-			getLogger().info("onPrepare: " + sr.getIngredientList());
-			getLogger().info("onPrepare: " + sr.getResult());
-
-		}
 	}
 
 	
@@ -246,7 +216,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 				if (args.length == 0) {
 					showHelp(sender);
 				} else {
-					switch (args[1].toLowerCase()) {
+					switch (args[0].toLowerCase()) {
 					case "reload":
 						reloadConfig();
 						break;
@@ -284,7 +254,6 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 				if (dropping.getHandle().getTag().hasKey("potatoBombEffect")) {
 					PotionEffectType effect = PotionEffectType.getById(dropping.getHandle().getTag().getInt("potatoBombEffect"));
 					String permNode = "potatobombs.drop." + effect.getName().toLowerCase().replaceAll("_","");
-					getLogger().info("Checking perm node: " + permNode);
 					if (!hasPermission(event.getPlayer(), permNode)) event.setCancelled(true);
 				}
 			}
@@ -301,11 +270,10 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 				int effectId = stack.getHandle().getTag().getInt("potatoBombEffect");
 				PotionEffectType et = PotionEffectType.getById(effectId);
 				String permNode = "potatobombs.immune." + et.getName().toLowerCase().replaceAll("_","");
-				getLogger().info("Checking perm node: " + permNode);
 				if (!hasPermission(event.getPlayer(), permNode)) {
-					int effectDuration = getConfig().getInt("effect-durations." + et.getName().toLowerCase().replaceAll("_",""),100);
+					int effectDuration = getConfig().getInt("effect-durations." + et.getName().toLowerCase().replaceAll("_",""),0);
 					PotionEffect eff = new PotionEffect(et, effectDuration * stack.getAmount(), 1);
-					event.getPlayer().sendMessage(getMsg("stepped-on", "effect", et.getName()));
+					event.getPlayer().sendMessage(getMsg("stepped-on", "effect", toTitleCase(et.getName())));
 					event.setCancelled(true);
 					event.getItem().remove();
 					applyEffect(eff, event.getPlayer());
