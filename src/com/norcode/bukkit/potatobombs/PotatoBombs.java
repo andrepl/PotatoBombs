@@ -8,14 +8,14 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.minecraft.server.NBTTagCompound;
+import net.minecraft.server.v1_4_6.NBTTagCompound;
 
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.inventory.CraftShapelessRecipe;
+import org.bukkit.craftbukkit.v1_4_6.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_4_6.inventory.CraftShapelessRecipe;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -90,12 +90,14 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 		NBTTagCompound disp;
 		
 		for (PotionEffectType e: effects) {
-			s = new CraftItemStack(Material.POISONOUS_POTATO,1);
-			s.getHandle().tag = new NBTTagCompound();
-			s.getHandle().getTag().setInt("potatoBombEffect", e.getId());
+			s = CraftItemStack.asCraftCopy(new ItemStack(Material.POISONOUS_POTATO,1));
+			net.minecraft.server.v1_4_6.ItemStack nms = CraftItemStack.asNMSCopy(s); 
+			nms.tag = new NBTTagCompound();
+			nms.getTag().setInt("potatoBombEffect", e.getId());
+			
 			disp = new NBTTagCompound();
 			disp.setString("Name", toTitleCase(e.getName()) + " Potato-bomb");
-			s.getHandle().getTag().setCompound("display", disp);
+			nms.getTag().setCompound("display", disp);
 			potatoBombs.put(e, s);
 		}
 		
@@ -123,7 +125,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 	
 	void onCraftItem(CraftItemEvent event) {
 		CraftItemStack stack = (CraftItemStack)event.getInventory().getResult();
-		if (stack.getType().equals(Material.POISONOUS_POTATO)) {
+		if (stack != null && stack.getType().equals(Material.POISONOUS_POTATO)) {
 			if (event.isShiftClick()) {
 				// shift click is super wierd and buggy
 				event.setCancelled(true);
@@ -211,7 +213,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 	public boolean onCommand(CommandSender sender, Command command,
 			String label, String[] args) {
 		
-		if (hasPermission((Player)sender, "potatobombs.admin")) {
+		if (sender.hasPermission("potatobombs.admin")) {
 			if (command.getName().equals("potatobombs")) {
 				if (args.length == 0) {
 					showHelp(sender);
@@ -250,9 +252,10 @@ public class PotatoBombs extends JavaPlugin implements Listener {
     public void onPlayerDropPotato(PlayerDropItemEvent event) {
 		if (event.getItemDrop().getItemStack().getType().equals(Material.POISONOUS_POTATO)) {
 			CraftItemStack dropping = (CraftItemStack)event.getItemDrop().getItemStack();
-			if (dropping.getHandle().tag != null) {
-				if (dropping.getHandle().getTag().hasKey("potatoBombEffect")) {
-					PotionEffectType effect = PotionEffectType.getById(dropping.getHandle().getTag().getInt("potatoBombEffect"));
+			net.minecraft.server.v1_4_6.ItemStack nms = CraftItemStack.asNMSCopy(dropping); 
+			if (nms.tag != null) {
+				if (nms.getTag().hasKey("potatoBombEffect")) {
+					PotionEffectType effect = PotionEffectType.getById(nms.getTag().getInt("potatoBombEffect"));
 					String permNode = "potatobombs.drop." + effect.getName().toLowerCase().replaceAll("_","");
 					if (!hasPermission(event.getPlayer(), permNode)) event.setCancelled(true);
 				}
@@ -265,9 +268,10 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 	public void onPickupPotato(PlayerPickupItemEvent event) {
 		CraftItemStack stack = (CraftItemStack)event.getItem().getItemStack();
 		if (stack.getType().equals(Material.POISONOUS_POTATO)) {
-			if (stack.getHandle().tag != null) {
+			net.minecraft.server.v1_4_6.ItemStack nms = CraftItemStack.asNMSCopy(stack); 
+			if (nms.tag != null) {
 				
-				int effectId = stack.getHandle().getTag().getInt("potatoBombEffect");
+				int effectId = nms.getTag().getInt("potatoBombEffect");
 				PotionEffectType et = PotionEffectType.getById(effectId);
 				String permNode = "potatobombs.immune." + et.getName().toLowerCase().replaceAll("_","");
 				if (!hasPermission(event.getPlayer(), permNode)) {
