@@ -174,7 +174,21 @@ public class PotatoBombs extends JavaPlugin implements Listener {
                 event.setCancelled(true); // cancel the pickup anyway, the bomb is enabled, it just doesn't work.
                 event.getItem().remove();
                 if (!pse.isCancelled() && pse.getIntensity((LivingEntity) event.getPlayer()) >= 1.0) {
-                    event.getPlayer().addPotionEffect(bomb.getEffect(stack.getAmount()));
+                    int duration = 0;
+                    for (PotionEffect eff: event.getPlayer().getActivePotionEffects()) {
+                        if (eff.getType().equals(bomb.getPotionEffectType())) {
+                            duration = eff.getDuration();
+                            break;
+                        }
+                    }
+                    if (event.getPlayer().hasPotionEffect(bomb.getPotionEffectType())) {
+                        event.getPlayer().removePotionEffect(bomb.getPotionEffectType());
+                    }
+                    ;
+                    event.getPlayer().addPotionEffect(bomb.getEffect(stack.getAmount(), duration));
+                    if (getConfig().getBoolean("explosion-effect", false)) {
+                        event.getPlayer().getWorld().createExplosion(event.getItem().getLocation(), 0.0f, false);
+                    }
                     if (stack.getAmount() == 1) {
                         event.getPlayer().sendMessage(getMsg("stepped-on-one", bomb.getEffectName()));
                     } else {
@@ -197,7 +211,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
         @Override
         public Collection<PotionEffect> getEffects() {
             List<PotionEffect> effects = new ArrayList<PotionEffect>();
-            effects.add(bomb.getEffect(amount));
+            effects.add(bomb.getEffect(amount, 0));
             return effects;
         }
     }
