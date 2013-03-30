@@ -8,14 +8,13 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.minecraft.server.v1_4_6.NBTTagCompound;
+import net.minecraft.server.v1_5_R2.NBTTagCompound;
 
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.craftbukkit.v1_4_6.inventory.CraftItemStack;
-import org.bukkit.craftbukkit.v1_4_6.inventory.CraftShapelessRecipe;
+import org.bukkit.craftbukkit.v1_5_R2.inventory.CraftItemStack;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -23,12 +22,10 @@ import org.bukkit.event.Listener;
 
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.CraftingInventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapelessRecipe;
 
@@ -36,19 +33,54 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import com.palmergames.bukkit.towny.Towny;
+import com.palmergames.bukkit.towny.TownyMessaging;
+import com.palmergames.bukkit.towny.TownySettings;
+import com.palmergames.bukkit.towny.exceptions.NotRegisteredException;
+import com.palmergames.bukkit.towny.object.Coord;
+import com.palmergames.bukkit.towny.object.PlayerCache;
+import com.palmergames.bukkit.towny.object.TownBlock;
+import com.palmergames.bukkit.towny.object.TownyPermission;
+import com.palmergames.bukkit.towny.object.TownyUniverse;
+import com.palmergames.bukkit.towny.object.WorldCoord;
+import com.palmergames.bukkit.towny.object.PlayerCache.TownBlockStatus;
+import com.palmergames.bukkit.towny.utils.PlayerCacheUtil;
+import com.palmergames.bukkit.towny.war.flagwar.TownyWarConfig;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+
 public class PotatoBombs extends JavaPlugin implements Listener {
 	
 	public static Random random = new Random();
 	ShapelessRecipe poisonousPotatoRecipe;
 	private HashMap<PotionEffectType, CraftItemStack> potatoBombs;
 	private HashMap<Integer, PotionEffectType> dyeMap;
+	private Towny towny = null;
+	private WorldGuardPlugin wg = null;
+	public boolean hasTowny() {
+		return towny != null;
+	}
+	
+	public Towny getTowny() {
+		return towny;
+	}
+	
+	public boolean hasWorldGuard() {
+		return wg != null;
+	}
+	
+	public WorldGuardPlugin getWorldGuard() {
+		return wg;
+	}
+	
 	@Override
 	public void onEnable() {
 		
 		FileConfiguration config = getConfig();
 		config.options().copyDefaults(true);
 		saveConfig();
-	
+		
+		towny = (Towny)getServer().getPluginManager().getPlugin("Towny");
+		wg = (WorldGuardPlugin)getServer().getPluginManager().getPlugin("WorldGuard");
 	        
 		getServer().getPluginManager().registerEvents(this, this);
 		poisonousPotatoRecipe = new ShapelessRecipe(new ItemStack(Material.POISONOUS_POTATO));
@@ -90,15 +122,14 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 		NBTTagCompound disp;
 		
 		for (PotionEffectType e: effects) {
-			s = CraftItemStack.asCraftCopy(new ItemStack(Material.POISONOUS_POTATO,1));
-			net.minecraft.server.v1_4_6.ItemStack nms = CraftItemStack.asNMSCopy(s); 
+			net.minecraft.server.v1_5_R2.ItemStack nms = CraftItemStack.asNMSCopy(new ItemStack(Material.POISONOUS_POTATO));
 			nms.tag = new NBTTagCompound();
-			nms.getTag().setInt("potatoBombEffect", e.getId());
+			nms.tag.setInt("potatoBombEffect", e.getId());
 			
 			disp = new NBTTagCompound();
 			disp.setString("Name", toTitleCase(e.getName()) + " Potato-bomb");
-			nms.getTag().setCompound("display", disp);
-			potatoBombs.put(e, s);
+			nms.tag.setCompound("display", disp);
+			potatoBombs.put(e, CraftItemStack.asCraftMirror(nms));
 		}
 		
 	}
@@ -188,11 +219,13 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 						}
 						
 						if (dye != null && potato != null) {
+							getLogger().info("Should be a potatobomb. check perms and junk.");
 							int dyeId = dye.getData().getData();
 							PotionEffectType pt = dyeMap.get(dyeId);
 							String permNode = "potatobombs.craft." + pt.getName().toLowerCase().replaceAll("_","");
-						
+							getLogger().info("Permnode: " + permNode);
 							if (potatoBombs.containsKey(pt) && hasPermission(player,permNode)) {
+								getLogger().info("Crafting PBOMBS!");
 								CraftItemStack ns = potatoBombs.get(pt).clone();
 								inv.setResult(ns);
 							}
@@ -252,9 +285,57 @@ public class PotatoBombs extends JavaPlugin implements Listener {
     public void onPlayerDropPotato(PlayerDropItemEvent event) {
 		if (event.getItemDrop().getItemStack().getType().equals(Material.POISONOUS_POTATO)) {
 			CraftItemStack dropping = (CraftItemStack)event.getItemDrop().getItemStack();
-			net.minecraft.server.v1_4_6.ItemStack nms = CraftItemStack.asNMSCopy(dropping); 
+			net.minecraft.server.v1_5_R2.ItemStack nms = CraftItemStack.asNMSCopy(dropping); 
 			if (nms.tag != null) {
 				if (nms.getTag().hasKey("potatoBombEffect")) {
+					if (hasWorldGuard()) {
+						if (!getWorldGuard().canBuild(event.getPlayer(), event.getPlayer().getLocation().getBlock())) {
+							event.setCancelled(true);
+							return;
+						}
+					}
+					if (hasTowny()) {
+						TownBlock tb = getTowny().getTownyUniverse().getTownBlock(event.getPlayer().getLocation());
+						if (tb.getPermissions().pvp) {
+							String worldName = event.getPlayer().getLocation().getWorld().getName();
+							WorldCoord worldCoord = new WorldCoord(worldName, Coord.parseCoord(event.getPlayer()));
+						
+							boolean bItemUse = false;
+							boolean wildOverride = false;
+							try {
+								bItemUse = PlayerCacheUtil.getCachePermission(event.getPlayer(), event.getPlayer().getLocation(), 0, (byte) 0, TownyPermission.ActionType.DESTROY);
+								wildOverride = TownyUniverse.getPermissionSource().hasWildOverride(worldCoord.getTownyWorld(), event.getPlayer(), 0, (byte)0, TownyPermission.ActionType.DESTROY);
+							} catch (NotRegisteredException ex) {
+								event.setCancelled(true);
+								return;
+							}
+
+							PlayerCache cache = getTowny().getCache(event.getPlayer());
+							//cache.updateCoord(worldCoord);
+							try {
+								TownBlockStatus status = cache.getStatus();
+								if (status == TownBlockStatus.UNCLAIMED_ZONE && wildOverride) {
+									event.setCancelled(false);
+									return;
+								}
+								
+								// Allow item_use if we have an override
+								if (((status == TownBlockStatus.TOWN_RESIDENT) && (TownyUniverse.getPermissionSource().hasOwnTownOverride(event.getPlayer(), 0, (byte)0, TownyPermission.ActionType.ITEM_USE))) || (((status == TownBlockStatus.OUTSIDER) || (status == TownBlockStatus.TOWN_ALLY) || (status == TownBlockStatus.ENEMY)) && (TownyUniverse.getPermissionSource().hasAllTownOverride(event.getPlayer(), 0,(byte)0, TownyPermission.ActionType.DESTROY)))) {
+									event.setCancelled(false);
+									return;
+								}
+								
+								if (status == TownBlockStatus.WARZONE) {
+									if (!TownyWarConfig.isAllowingItemUseInWarZone()) {
+										event.setCancelled(true);
+										TownyMessaging.sendErrorMsg(event.getPlayer(), TownySettings.getLangString("msg_err_warzone_cannot_use_item"));
+									}
+									return;
+								}
+							} catch (NullPointerException ex) {
+							}
+						}
+					}
 					PotionEffectType effect = PotionEffectType.getById(nms.getTag().getInt("potatoBombEffect"));
 					String permNode = "potatobombs.drop." + effect.getName().toLowerCase().replaceAll("_","");
 					if (!hasPermission(event.getPlayer(), permNode)) event.setCancelled(true);
@@ -268,7 +349,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 	public void onPickupPotato(PlayerPickupItemEvent event) {
 		CraftItemStack stack = (CraftItemStack)event.getItem().getItemStack();
 		if (stack.getType().equals(Material.POISONOUS_POTATO)) {
-			net.minecraft.server.v1_4_6.ItemStack nms = CraftItemStack.asNMSCopy(stack); 
+			net.minecraft.server.v1_5_R2.ItemStack nms = CraftItemStack.asNMSCopy(stack); 
 			if (nms.tag != null) {
 				
 				int effectId = nms.getTag().getInt("potatoBombEffect");

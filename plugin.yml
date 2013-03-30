@@ -1,6 +1,7 @@
 name: PotatoBombs
 main: com.norcode.bukkit.potatobombs.PotatoBombs
 version: 0.0.5
+softdepend: [Towny, WorldGuard]
 commands:
   potatobombs:
     aliases: [pbomb, pbombs, pb]
