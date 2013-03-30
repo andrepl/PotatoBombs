@@ -1,17 +1,31 @@
-allow-crafting:
-  poisonous-potatoes: false
-
-effect-durations:
-  confusion: 100
-  blindness: 100
-  poison: 20
-  slow: 200
-  harm: 40
-  hunger: 100
-  weakness: 200
-  wither: 100
-  slowdigging: 100
-  
+craft-poisonous-potatoes: true
+explosion-effect: true
+types:
+    blindness:
+        duration: 200
+        amplifier: 1
+        enabled: true
+        craftable: true
+        dye: 0
+    confusion:
+        duration: 200
+        dye: 1
+    poison:
+        dye: 6
+    wither:
+        dye: 1
+    slow_digging:
+        duration: 300
+        dye: 4
+    slow:
+        duration: 300
+        dye: 5
+    hunger:
+        duration: 200
+        dye: 3
+    weakness:
+        duration: 200
+        dye: 2
 messages:
-  stepped-on: "You stepped on a { effect } PotatoBomb!"
-  dropped: "You dropped a { effect } PotatoBomb!"
+    stepped-on-one: "You stepped on a {0} Potato-Bomb!"
+    stepped-on-many: "You stepped on {0} {1} Potato-Bombs!"

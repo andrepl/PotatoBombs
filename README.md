@@ -1,7 +1,7 @@
 PotatoBombs
 ===
 
-PotatoBombs is a bukkit plugin that allows players to craft "PotatoBombs" that apply potion effects when someone tries to pick them up.
+PotatoBombs is a bukkit plugin that allows players to craft "PotatoBombs" that explode and apply potion effects when someone tries to pick them up.
 
 Features
 ---
