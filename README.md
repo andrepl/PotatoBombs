@@ -3,27 +3,30 @@ PotatoBombs
 
 PotatoBombs is a bukkit plugin that allows players to craft "PotatoBombs" that explode and apply potion effects when someone tries to pick them up.
 
+Potato-Bombs are crafted by combining a Poisonous Potato, Gunpowder, and a Dye on the crafting grid in any shape.  Each dye color creates a potato bombs with a different potion effect.
+
+All bombs are completely configurable, you can specify your own in the configuration file that gives any effect for any duration, using any dye color.
+
 Features
 ---
 
- * Craft Poisonous Potatoes from regular potato + fermented spider eye. [disabled in config]
- * Craft various effects by combining dyes w/ poisonous potatoes.
- * Effect durations are extended by picking up more potatoes with the same effect
- * Permissions to control immunity, crafting and dropping of every type of potato.
+ * Allows crafting of Poisonous Potatoes from a regular potato surrounded by fermented spider eyes.
+ * Potion effects, durations, and dye colors are 100% configurable.
+ * Individual permission nodes to control drop, craft and immunity permissions.
 
-Dyes & Effects
+Default Dyes & Effects
 ---
 
- * Rose Red - BLINDNESS
- * Cactus Green - CONFUSION
- * Cocoa Beans - HARM
- * Lapis Lazuli - HUNGER
- * Purple Dye -POISON
- * Cyan Dye - SLOW
- * Light Gray Dye - SLOW_DIGGING
- * Gray Dye - WEAKNESS
- * Pink Dye - WITHER
+These have changed from previous versions.
 
+ * Ink Sack - BLINDNESS
+ * Rose Red - WITHER
+ * Cactus Green - WEAKNESS
+ * Cocoa Beans - HUNGER
+ * Lapis Lazuli - SLOW_DIGGING
+ * Purple Dye - SLOW
+ * Cyan Dye - POISON
+ * Orange Dye - CONFUSION
 
 Permissions
 ---

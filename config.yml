@@ -9,7 +9,7 @@ types:
         dye: 0
     confusion:
         duration: 200
-        dye: 1
+        dye: 14
     poison:
         dye: 6
     wither:
