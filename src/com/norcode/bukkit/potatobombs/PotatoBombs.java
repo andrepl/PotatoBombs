@@ -148,10 +148,6 @@ public class PotatoBombs extends JavaPlugin implements Listener {
         }
     }
     
-    @EventHandler(ignoreCancelled=true, priority=EventPriority.MONITOR)
-    public void onPotionSplash(PotionSplashEvent event) {
-        getLogger().info("Potion Splash @ " + event.getEntity().getLocation() + ": " + event.getPotion().getEffects());
-    }
     
     @EventHandler(ignoreCancelled=true, priority=EventPriority.HIGHEST)
     public void onPlayerPickupItem(PlayerPickupItemEvent event) {
@@ -164,7 +160,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
                 // First we spawn a 'fake' thrownpotion entity representing the potato's effect.
                 ThrownPotion potion = new FakeThrownPotion((CraftServer) getServer(), event.getItem().getLocation(), bomb, stack.getAmount());
 //                potion.getEffects().add(bomb.getEffect(stack.getAmount()));
-                HashMap<LivingEntity, Double> target = new HashMap<>();
+                HashMap<LivingEntity, Double> target = new HashMap<LivingEntity, Double>();
                 target.put(event.getPlayer(), 1.0);
                 // Call a PotionSplashEvent to see if any plugins prevent it.
                 PotionSplashEvent pse = new PotionSplashEvent(potion, target);
