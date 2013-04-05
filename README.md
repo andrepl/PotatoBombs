@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/andrepl/PotatoBombs.png)](https://travis-ci.org/andrepl/PotatoBombs)
 PotatoBombs is a bukkit plugin that allows players to craft "PotatoBombs" that explode and apply potion effects when someone tries to pick them up.
 
 Potato-Bombs are crafted by combining a Poisonous Potato, Gunpowder, and a Dye on the crafting grid in any shape.  Each dye color creates a potato bombs with a different potion effect.
@@ -42,3 +41,10 @@ Commands
 ===
 
  * /potatobombs reload - reload the config file.
+
+Source code & Development Builds
+===
+
+Source code is avaible on [github](http://github.com/andrepl/PotatoBombs/)
+
+[PotatoBombs Development Builds](http://mcgitlab.norcode.com:8081/job/PotatoBombs/lastSuccessfulBuild/PotatoBombs$PotatoBombs/)
