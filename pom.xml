@@ -5,6 +5,15 @@
   <version>0.1.2-SNAPSHOT</version>
   <description>A Bukkit plugin to turn poisonous potatoes into magical landmines.</description>
   <build>
+        <resources>
+        <resource>
+            <directory>.</directory>
+            <includes>
+                <include>plugin.yml</include>
+                <include>config.yml</include>
+            </includes>
+        </resource>
+    </resources>
     <sourceDirectory>src</sourceDirectory>
     <plugins>
       <plugin>
