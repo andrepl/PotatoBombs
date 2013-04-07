@@ -29,6 +29,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
@@ -190,6 +191,30 @@ public class PotatoBombs extends JavaPlugin implements Listener {
                         event.getPlayer().sendMessage(getMsg("stepped-on-many", stack.getAmount(), bomb.getEffectName()));
                     }
                 }
+            }
+        }
+    }
+
+    @EventHandler(ignoreCancelled=true, priority=EventPriority.HIGH)
+    public void onConsumePotato(PlayerItemConsumeEvent event) {
+        ItemStack stack = event.getItem();
+        if (stack.getType().equals(Material.POISONOUS_POTATO) && stack.hasItemMeta() && stack.getItemMeta().hasLore()) {
+            String type = stack.getItemMeta().getLore().get(0);
+            PotionEffectType effect = PotionEffectType.getByName(type);
+            PotatoBomb bomb = PotatoBomb.get(effect);
+            if (bomb != null && bomb.isEnabled() && !event.getPlayer().hasPermission(bomb.getImmunePermission())) {
+                int duration = 0;
+                for (PotionEffect eff: event.getPlayer().getActivePotionEffects()) {
+                    if (eff.getType().equals(bomb.getPotionEffectType())) {
+                        duration = eff.getDuration();
+                        break;
+                    }
+                }
+                if (event.getPlayer().hasPotionEffect(bomb.getPotionEffectType())) {
+                    event.getPlayer().removePotionEffect(bomb.getPotionEffectType());
+                }
+                event.getPlayer().addPotionEffect(bomb.getEffect(1, duration));
+                event.getPlayer().sendMessage(getMsg("ate", bomb.getEffectName()));
             }
         }
     }

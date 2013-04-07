@@ -27,5 +27,6 @@ types:
         duration: 200
         dye: 2
 messages:
+    ate: "You ATE a {0} Potato-Bombs!"
     stepped-on-one: "You stepped on a {0} Potato-Bomb!"
     stepped-on-many: "You stepped on {0} {1} Potato-Bombs!"
