@@ -1,8 +1,12 @@
 name: PotatoBombs
 main: com.norcode.bukkit.potatobombs.PotatoBombs
-version: 0.1.2
+version: 0.1.4
 commands:
   potatobombs:
     aliases: [pbomb, pbombs, pb]
     description: potato bomb config
     permission: potatobombs.admin
+    
+permissions:
+  potatobombs.admin:
+    default: op

@@ -1,8 +1,8 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>PotatoBombs</groupId>
+  <groupId>com.norcode.bukkit.potatobombs</groupId>
   <artifactId>PotatoBombs</artifactId>
-  <version>0.1.2-SNAPSHOT</version>
+  <version>0.1.4</version>
   <description>A Bukkit plugin to turn poisonous potatoes into magical landmines.</description>
   <build>
         <resources>
@@ -29,14 +29,14 @@
   <repositories>
         <repository>
             <id>bukkit-repo</id>
-            <url>http://repo.bukkit.org/content/repositories/snapshots/</url>
+            <url>http://repo.bukkit.org/content/repositories/releases/</url>
         </repository>
   </repositories>
   <dependencies>
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>craftbukkit</artifactId>
-            <version>1.5.2-R0.1-SNAPSHOT</version>
+            <version>1.5.2-R0.1</version>
         </dependency>
   </dependencies>
 </project>

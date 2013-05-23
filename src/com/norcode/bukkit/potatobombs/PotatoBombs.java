@@ -8,6 +8,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+import net.h31ix.updater.Updater;
+import net.h31ix.updater.Updater.UpdateType;
 import net.minecraft.server.v1_5_R3.EntityPotion;
 
 import org.bukkit.Location;
@@ -30,6 +32,7 @@ import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
@@ -41,7 +44,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 public class PotatoBombs extends JavaPlugin implements Listener {
-
+    private Updater updater;
     public static Random random = new Random();
 
     @Override
@@ -50,6 +53,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
         config.options().copyDefaults(true);
         saveConfig();
         loadConfig();
+        doUpdater();
         getServer().getPluginManager().registerEvents(this, this);
     }
 
@@ -148,8 +152,18 @@ public class PotatoBombs extends JavaPlugin implements Listener {
             }
         }
     }
-    
-    
+
+    public void doUpdater() {
+        String autoUpdate = getConfig().getString("auto-update", "notify-only").toLowerCase();
+        if (autoUpdate.equals("true")) {
+            updater = new Updater(this, "potatobombs", this.getFile(), UpdateType.DEFAULT, true);
+        } else if (autoUpdate.equals("false")) {
+            getLogger().info("Auto-updater is disabled.  Skipping check.");
+        } else {
+            updater = new Updater(this, "potatobombs", this.getFile(), UpdateType.NO_DOWNLOAD, true);
+        }
+    }
+
     @EventHandler(ignoreCancelled=true, priority=EventPriority.HIGHEST)
     public void onPlayerPickupItem(PlayerPickupItemEvent event) {
         ItemStack stack = event.getItem().getItemStack();
@@ -235,4 +249,30 @@ public class PotatoBombs extends JavaPlugin implements Listener {
             return effects;
         }
     }
+
+    @EventHandler(ignoreCancelled=true)
+    public void onPlayerLogin(PlayerLoginEvent event) {
+        if (event.getPlayer().hasPermission("potatobombs.admin")) {
+            final String playerName = event.getPlayer().getName();
+            getServer().getScheduler().runTaskLaterAsynchronously(this, new Runnable() {
+                public void run() {
+                    Player player = getServer().getPlayer(playerName);
+                    if (player != null && player.isOnline()) {
+                        getLogger().info("Updater Result: " + updater.getResult());
+                        switch (updater.getResult()) {
+                        case UPDATE_AVAILABLE:
+                            player.sendMessage("A new version of PotatoBombs is available at http://dev.bukkit.org/server-mods/potatobombs/");
+                            break;
+                        case SUCCESS:
+                            player.sendMessage("A new version of PotatoBombs has been downloaded and will take effect when the server restarts.");
+                            break;
+                        default:
+                            // nothing
+                        }
+                    }
+                }
+            }, 20);
+        }
+    }
+
 }
