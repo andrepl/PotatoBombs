@@ -1,6 +1,6 @@
 name: PotatoBombs
 main: com.norcode.bukkit.potatobombs.PotatoBombs
-version: 0.1.4
+version: 0.1.5-SNAPSHOT
 commands:
   potatobombs:
     aliases: [pbomb, pbombs, pb]

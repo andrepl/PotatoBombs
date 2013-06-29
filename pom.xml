@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norcode.bukkit.potatobombs</groupId>
   <artifactId>PotatoBombs</artifactId>
-  <version>0.1.4</version>
+  <version>0.1.5-SNAPSHOT</version>
   <description>A Bukkit plugin to turn poisonous potatoes into magical landmines.</description>
   <build>
         <resources>
