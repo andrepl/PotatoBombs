@@ -159,6 +159,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
             updater = new Updater(this, "potatobombs", this.getFile(), UpdateType.DEFAULT, true);
         } else if (autoUpdate.equals("false")) {
             getLogger().info("Auto-updater is disabled.  Skipping check.");
+            updater = null;
         } else {
             updater = new Updater(this, "potatobombs", this.getFile(), UpdateType.NO_DOWNLOAD, true);
         }
@@ -252,7 +253,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 
     @EventHandler(ignoreCancelled=true)
     public void onPlayerLogin(PlayerLoginEvent event) {
-        if (event.getPlayer().hasPermission("potatobombs.admin")) {
+        if (event.getPlayer().hasPermission("potatobombs.admin") && updater != null) {
             final String playerName = event.getPlayer().getName();
             getServer().getScheduler().runTaskLaterAsynchronously(this, new Runnable() {
                 public void run() {
