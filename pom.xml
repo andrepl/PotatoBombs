@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.norcode.bukkit.potatobombs</groupId>
   <artifactId>PotatoBombs</artifactId>
-  <version>0.1.5-SNAPSHOT</version>
+  <version>0.1.5</version>
   <description>A Bukkit plugin to turn poisonous potatoes into magical landmines.</description>
   <build>
         <resources>
@@ -29,14 +29,14 @@
   <repositories>
         <repository>
             <id>bukkit-repo</id>
-            <url>http://repo.bukkit.org/content/repositories/releases/</url>
+            <url>http://repo.bukkit.org/content/repositories/snapshots/</url>
         </repository>
   </repositories>
   <dependencies>
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>craftbukkit</artifactId>
-            <version>1.5.2-R0.1</version>
+            <version>1.6.1-R0.1-SNAPSHOT</version>
         </dependency>
   </dependencies>
 </project>
