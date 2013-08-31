@@ -10,7 +10,7 @@ import java.util.Random;
 
 import net.h31ix.updater.Updater;
 import net.h31ix.updater.Updater.UpdateType;
-import net.minecraft.server.v1_6_R1.EntityPotion;
+import net.minecraft.server.v1_6_R2.EntityPotion;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -18,16 +18,17 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.craftbukkit.v1_6_R1.CraftServer;
-import org.bukkit.craftbukkit.v1_6_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_6_R1.entity.CraftThrownPotion;
-import org.bukkit.craftbukkit.v1_6_R1.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.v1_6_R2.CraftServer;
+import org.bukkit.craftbukkit.v1_6_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_6_R2.entity.CraftThrownPotion;
+import org.bukkit.craftbukkit.v1_6_R2.inventory.CraftItemStack;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.ItemDespawnEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -134,6 +135,21 @@ public class PotatoBombs extends JavaPlugin implements Listener {
                     if (!event.getPlayer().hasPermission(bomb.getDropPermission())) {
                         event.setCancelled(true);
                     }
+                }
+            }
+        }
+    }
+
+    @EventHandler(ignoreCancelled=true, priority=EventPriority.LOW)
+    public void onItemDespawn(ItemDespawnEvent event) {
+        ItemStack stack = event.getEntity().getItemStack();
+        if (stack.getType().equals(Material.POISONOUS_POTATO)) {
+            if (stack.hasItemMeta() && stack.getItemMeta().hasLore()) {
+                String type = stack.getItemMeta().getLore().get(0);
+                PotionEffectType effect = PotionEffectType.getByName(type);
+                PotatoBomb bomb = PotatoBomb.get(effect);
+                if (bomb != null) {
+
                 }
             }
         }
