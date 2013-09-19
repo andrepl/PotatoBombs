@@ -12,8 +12,10 @@ import net.h31ix.updater.Updater;
 import net.h31ix.updater.Updater.UpdateType;
 import net.minecraft.server.v1_6_R2.EntityPotion;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -63,7 +65,9 @@ public class PotatoBombs extends JavaPlugin implements Listener {
             getLogger().info(s);
         }
     }
+
     public void loadConfig() {
+
         // unregister all bombs
         for (PotionEffectType type: new ArrayList<PotionEffectType>(PotatoBomb.getRegisteredTypes())) {
             debug("Unregistering bomb-type: " + type);
@@ -79,6 +83,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
         // Remove Poisonous Potato Recipe
         Iterator<Recipe> it = getServer().recipeIterator();
         while (it.hasNext()) {
+
             Recipe recipe = it.next();
             if (recipe.getResult().isSimilar(new ItemStack(Material.POISONOUS_POTATO))) {
                 getLogger().info("Unregistering Recipe: " + recipe);
@@ -96,6 +101,8 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 
     @Override
     public void onDisable() {
+        World w;
+
         for (PotionEffectType type: new ArrayList<PotionEffectType>(PotatoBomb.getRegisteredTypes())) {
             PotatoBomb.unregister(this, type);
         }
@@ -113,6 +120,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
     }
     
     public String getMsg(String key, Object... args) {
+
         String tpl = getConfig().getString("messages." + key);
         if (tpl == null) {
             tpl = "[" + key + "] ";
@@ -188,7 +196,15 @@ public class PotatoBombs extends JavaPlugin implements Listener {
             String type = stack.getItemMeta().getLore().get(0);
             PotionEffectType effect = PotionEffectType.getByName(type);
             PotatoBomb bomb = PotatoBomb.get(effect);
-            if (bomb != null && bomb.isEnabled() && !event.getPlayer().hasPermission(bomb.getImmunePermission())) {
+            if (bomb == null) {
+                debug("Unknown bomb type: " + type);
+                return;
+            }
+            if (!bomb.isEnabled()) {
+                debug("Bomb type: " + type + " not enabled.");
+                return;
+            }
+            if (!event.getPlayer().hasPermission(bomb.getImmunePermission())) {
                 // First we spawn a 'fake' thrownpotion entity representing the potato's effect.
                 ThrownPotion potion = new FakeThrownPotion((CraftServer) getServer(), event.getItem().getLocation(), bomb, stack.getAmount());
                 HashMap<LivingEntity, Double> target = new HashMap<LivingEntity, Double>();
@@ -222,6 +238,8 @@ public class PotatoBombs extends JavaPlugin implements Listener {
                         event.getPlayer().sendMessage(getMsg("stepped-on-many", stack.getAmount(), bomb.getEffectName()));
                     }
                 }
+            } else {
+                debug(event.getPlayer().getName() + " has " + bomb.getImmunePermission() + " doing pickup instead.");
             }
         }
     }
