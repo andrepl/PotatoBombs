@@ -1,6 +1,8 @@
-name: PotatoBombs
-main: com.norcode.bukkit.potatobombs.PotatoBombs
-version: 0.1.6
+name: ${project.name}
+main: ${project.main}
+version: ${project.version}
+author: ${project.authors}
+
 commands:
   potatobombs:
     aliases: [pbomb, pbombs, pb]

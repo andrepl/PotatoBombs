@@ -2,28 +2,19 @@ package com.norcode.bukkit.potatobombs;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Random;
 
-import net.h31ix.updater.Updater;
-import net.h31ix.updater.Updater.UpdateType;
-import net.minecraft.server.v1_6_R3.EntityPotion;
-
-import org.apache.commons.lang.StringUtils;
-import org.bukkit.Location;
+import com.norcode.bukkit.potatobombs.api.FakeThrownPotion;
+import net.gravitydevelopment.updater.Updater;
 import org.bukkit.Material;
+
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.craftbukkit.v1_6_R3.CraftServer;
-import org.bukkit.craftbukkit.v1_6_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_6_R3.entity.CraftThrownPotion;
-import org.bukkit.craftbukkit.v1_6_R3.inventory.CraftItemStack;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.ThrownPotion;
@@ -52,12 +43,17 @@ public class PotatoBombs extends JavaPlugin implements Listener {
 
     @Override
     public void onEnable() {
+		try {
         FileConfiguration config = getConfig();
         config.options().copyDefaults(true);
         saveConfig();
         loadConfig();
         doUpdater();
         getServer().getPluginManager().registerEvents(this, this);
+		} catch (Exception e) {
+			getLogger().info(e.getMessage());
+			e.printStackTrace();
+		}
     }
 
     public void debug(String s) {
@@ -80,16 +76,39 @@ public class PotatoBombs extends JavaPlugin implements Listener {
             debug("registering bomb-type: " + key);
             PotatoBomb.register(this, PotionEffectType.getByName(key.toUpperCase()), (byte) cfg.getInt("dye"), cfg.getInt("amplifier", 1), cfg.getInt("duration", 100), cfg.getBoolean("craftable", true), cfg.getBoolean("enabled", true));            
         }
-        // Remove Poisonous Potato Recipe
+		debug("All Bomb Recipes registered.");
+		// Remove Poisonous Potato Recipe
         Iterator<Recipe> it = getServer().recipeIterator();
+		debug("Got recipe iterator");
         while (it.hasNext()) {
-
-            Recipe recipe = it.next();
+			debug("it has next");
+			Recipe recipe = null;
+			try {
+            	recipe = it.next();
+			} catch (AbstractMethodError e) {
+				e.printStackTrace();
+				if (e.getCause() != null) {
+					getLogger().info("Caused by" + e.getCause().toString());
+				}
+				if (e.getMessage() != null) {
+					getLogger().info(e.getMessage());
+				}
+				if (e.getSuppressed() != null) {
+					getLogger().info("Suppressed:" + e.getSuppressed().length);
+					for (Throwable x: e.getSuppressed()) {
+						getLogger().info(" - " + x.getMessage());
+					}
+				}
+				throw e;
+			}
+			debug("Checking " + recipe);
             if (recipe.getResult().isSimilar(new ItemStack(Material.POISONOUS_POTATO))) {
                 getLogger().info("Unregistering Recipe: " + recipe);
                 it.remove();
             }
+			debug("Checked " + recipe.getClass());
         }
+		debug("Cleared poisonous potato recipe");
         // re-register poisonous potato recipe if configured.
         if (getConfig().getBoolean("craft-poisonous-potatoes", false)) {
             getLogger().info("Registering Poisonous Potato Recipe");
@@ -180,12 +199,12 @@ public class PotatoBombs extends JavaPlugin implements Listener {
     public void doUpdater() {
         String autoUpdate = getConfig().getString("auto-update", "notify-only").toLowerCase();
         if (autoUpdate.equals("true")) {
-            updater = new Updater(this, "potatobombs", this.getFile(), UpdateType.DEFAULT, true);
+            updater = new Updater(this, 48367, this.getFile(), Updater.UpdateType.DEFAULT, true);
         } else if (autoUpdate.equals("false")) {
             getLogger().info("Auto-updater is disabled.  Skipping check.");
             updater = null;
         } else {
-            updater = new Updater(this, "potatobombs", this.getFile(), UpdateType.NO_DOWNLOAD, true);
+			updater = new Updater(this, 48367, this.getFile(), Updater.UpdateType.NO_DOWNLOAD, true);
         }
     }
 
@@ -206,7 +225,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
             }
             if (!event.getPlayer().hasPermission(bomb.getImmunePermission())) {
                 // First we spawn a 'fake' thrownpotion entity representing the potato's effect.
-                ThrownPotion potion = new FakeThrownPotion((CraftServer) getServer(), event.getItem().getLocation(), bomb, stack.getAmount());
+                ThrownPotion potion = FakeThrownPotion.create(getServer(), event.getItem().getLocation(), bomb, stack.getAmount());
                 HashMap<LivingEntity, Double> target = new HashMap<LivingEntity, Double>();
                 target.put(event.getPlayer(), 1.0);
                 // Call a PotionSplashEvent to see if any plugins prevent it.
@@ -268,22 +287,6 @@ public class PotatoBombs extends JavaPlugin implements Listener {
         }
     }
 
-    private static class FakeThrownPotion extends CraftThrownPotion {
-        private PotatoBomb bomb = null;
-        private int amount = 0;
-        public FakeThrownPotion(CraftServer server, Location location, PotatoBomb bomb, int amount) {
-            super(server, new EntityPotion(((CraftWorld) location.getWorld()).getHandle(), location.getX(), location.getY(), location.getZ(), CraftItemStack.asNMSCopy(new ItemStack(Material.POTION, 1))));
-            this.bomb = bomb;
-            this.amount = amount;
-        }
-
-        @Override
-        public Collection<PotionEffect> getEffects() {
-            List<PotionEffect> effects = new ArrayList<PotionEffect>();
-            effects.add(bomb.getEffect(amount, 0));
-            return effects;
-        }
-    }
 
     @EventHandler(ignoreCancelled=true)
     public void onPlayerLogin(PlayerLoginEvent event) {
@@ -298,7 +301,7 @@ public class PotatoBombs extends JavaPlugin implements Listener {
                         case UPDATE_AVAILABLE:
                             player.sendMessage("A new version of PotatoBombs is available at http://dev.bukkit.org/server-mods/potatobombs/");
                             break;
-                        case SUCCESS:
+						case SUCCESS:
                             player.sendMessage("A new version of PotatoBombs has been downloaded and will take effect when the server restarts.");
                             break;
                         default:

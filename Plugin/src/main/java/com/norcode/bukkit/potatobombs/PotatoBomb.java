@@ -5,8 +5,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import com.norcode.bukkit.potatobombs.api.IPotatoBomb;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapelessRecipe;
@@ -15,12 +15,9 @@ import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.yaml.snakeyaml.constructor.BaseConstructor;
-
-import com.norcode.bukkit.potatobombs.PotatoBombs;
 
 
-public class PotatoBomb {
+public class PotatoBomb implements IPotatoBomb {
     private static Permission wildcardCraftPermission =  null;
     private static Permission wildcardDropPermission = null;
     private static Permission wildcardImmunePermission = null;
