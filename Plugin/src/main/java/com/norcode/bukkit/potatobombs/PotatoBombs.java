@@ -63,7 +63,13 @@ public class PotatoBombs extends JavaPlugin implements Listener {
     }
 
     public void loadConfig() {
-
+		try {
+			FakeThrownPotion.initialize(getServer());
+		} catch(ClassNotFoundException ex) {
+			getServer().getPluginManager().disablePlugin(this);
+			getLogger().warning("Incompatible craftbukkit version. disabling.");
+					return;
+		}
         // unregister all bombs
         for (PotionEffectType type: new ArrayList<PotionEffectType>(PotatoBomb.getRegisteredTypes())) {
             debug("Unregistering bomb-type: " + type);
